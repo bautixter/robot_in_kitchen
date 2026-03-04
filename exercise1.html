@@ -41,8 +41,11 @@
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+    const PI = 3.14159265359;
+
     // Scene setup
     // ----------------------------------------------------------------
+
 
     // ☆ Initialize the scene
     const scene = new THREE.Scene();
@@ -112,32 +115,11 @@
     tableBaseT_diff.offset.set(0, .25);
 
     //  ☆ Create materials
-    const floor_mat = new THREE.MeshPhongMaterial({
-        map: floorT_diff,
-        side: THREE.DoubleSide,
-        shininess: 150,
-    });
-
-    const wall_mat = new THREE.MeshPhongMaterial({
-        map: wallT_diff,
-        side: THREE.DoubleSide,
-        shininess: 150,
-    });
-
-    const tableBase_mat = new THREE.MeshPhongMaterial({
-        map: tableBaseT_diff,
-        shininess: 200,
-    })
-
-    const tableTop_mat = new THREE.MeshPhongMaterial({
-        map: tableTopT_diff,
-        shininess: 200,
-    })
-
-    const rubik_mat = new THREE.MeshPhongMaterial({
-        map: rubikT_diff,
-        shininess: 100,
-    })
+    const floor_mat     = new THREE.MeshPhongMaterial({map: floorT_diff, side: THREE.DoubleSide, shininess: 150,});
+    const wall_mat      = new THREE.MeshPhongMaterial({map: wallT_diff, side: THREE.DoubleSide, shininess: 150,});
+    const tableBase_mat = new THREE.MeshPhongMaterial({map: tableBaseT_diff, shininess: 200,})
+    const tableTop_mat  = new THREE.MeshPhongMaterial({map: tableTopT_diff, shininess: 200,})
+    const rubik_mat     = new THREE.MeshPhongMaterial({map: rubikT_diff, shininess: 100,})
 
     const can_materials = [
         new THREE.MeshPhongMaterial({map: cansideT_diff, shininess: 200}),
@@ -147,28 +129,23 @@
 
     //  ☆ Create meshes and add to the scene
     const floor_M = new THREE.Mesh(plane_G, floor_mat);
-    floor_M.rotation.x = 3.1416 / 2;
-    floor_M.rotation.z = 3.1416 / 8;
+    floor_M.rotation.set(PI/2, 0, PI/8);
     floor_M.position.y = -1;
     floor_M.scale.set(0.9,0.9,0.9);
     scene.add(floor_M);
 
     const wall1_M = new THREE.Mesh(plane_G, wall_mat);
-    wall1_M.rotation.x = 3.1416 / 2;
-    wall1_M.rotation.z = - 3.1416 / 2;
-    wall1_M.position.z = -2;
-    wall1_M.position.y = -2;
+    wall1_M.rotation.set(PI/2, 0, PI/2);
+    wall1_M.position.set(0,-2,-2);
     floor_M.add(wall1_M);
 
     const wall2_M = new THREE.Mesh(plane_G, wall_mat)
-    wall2_M.rotation.y = 3.1416 / 2;
-    wall2_M.position.z = -2;
-    wall2_M.position.x = -2;
+    wall2_M.rotation.y = PI / 2;
+    wall2_M.position.set(-2,0,-2);
     floor_M.add(wall2_M);
 
     const tableBase_M = new THREE.Mesh(tableBase_G, tableBase_mat);
-    tableBase_M.position.z = -0.9;
-    tableBase_M.position.y = 0.5;
+    tableBase_M.position.set(0,0.5,-0.9);
     tableBase_M.scale.set(.9,.9,.9);
     floor_M.add(tableBase_M);
 
@@ -177,20 +154,18 @@
     tableBase_M.add(tableTop_M);
 
     const rubik_M = new THREE.Mesh(rubik_G, rubik_mat);
-    rubik_M.position.z = -0.074;
-    rubik_M.position.x = 0.3;
+    rubik_M.position.set(0.3,0,-0.074);
     rubik_M.rotation.z = 0.2;
     tableTop_M.add(rubik_M);
 
     const can_M = new THREE.Mesh(can_G, can_materials);
     can_M.scale.set(0.9,0.9,0.9);
-    can_M.position.z = -0.12;
-    can_M.position.x = -0.2;
-    can_M.rotation.x = 3.1416/2;
+    can_M.position.set(-0.2,0,-0.12);
+    can_M.rotation.x = PI/2;
     tableTop_M.add(can_M);
 
 
-    // Walls setup
+    // Animation loop setup
     // ----------------------------------------------------------------
 
 
