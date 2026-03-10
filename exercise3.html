@@ -290,19 +290,17 @@
     spot1.penumbra = 0.2;
     spot1.target = floor_M;
 
-    // // Add to the scene
+    // Add to the scene
     scene.add(spot1);
     scene.add(ambient);
     
-    // // ☆ We need to make sure the shadowMap is enabled
+    // ☆ We need to make sure the shadowMap is enabled
     renderer.shadowMap.enabled = true;
 
-    // // ☆ We'll activate shadow casting only for the top point-light
+    // ☆ We'll activate shadow casting on our spotlight
     spot1.castShadow = true;
 
-    // // ☆ We also need to setup which objects in the scene will cast/receive shadows
-
-    // // We want the robot to cast shadows so...
+    // ☆ We also need to setup which objects in the scene will cast/receive shadows
     for (const [key, mesh] of Object.entries(meshes)){
         mesh.castShadow = true;
     }
@@ -311,7 +309,7 @@
     can_M.castShadow = true;
     rubik_M.castShadow = true;
 
-    // // We want the floor, walls and kitchen counter to receive shadows
+    // We want the floor, walls and kitchen counter to receive shadows
     floor_M.receiveShadow = true;
     wall1_M.receiveShadow = true;
     wall2_M.receiveShadow = true;
@@ -322,6 +320,8 @@
     spot1.shadow.mapSize.width = 2040;
     spot1.shadow.blurSamples = 20;
     spot1.shadow.radius = 4;
+
+    // I used a CameraHelper to debug if everything was right, now it's off
     // const cameraHelper = new THREE.CameraHelper(light.shadow.camera);
     // scene.add(cameraHelper);
 
