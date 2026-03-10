@@ -175,13 +175,15 @@
     // ☆ I made a chef robot using Blender, without any animations whatsoever, only defining the geometry
     // - Let's import it into the scene (https://threejs.org/docs/#GLTFLoader)
 
+    import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+
     const gltf_loader = new GLTFLoader();
     const gltf_robot = await gltf_loader.loadAsync('models/robot.glb')
     
     // The gltf scene consists of a series of named meshes
     const meshes = {};
     gltf_robot.scene.traverse((obj) => { if(obj.isMesh) meshes[obj.name] = obj; });
-
+    
     // ☆ Body
     const torso           = meshes["torso"]
     const hips_base       = meshes["hips_base"]
@@ -246,47 +248,51 @@
         part.add(axesHelper)
     }
 
-    // ☆ Add Textures
+    // ☆ Load textures
     const steel_tex = loader.load("textures/steel.jpg")
-    const steel_mat = new THREE.MeshPhongMaterial({map: steel_tex, shininess: 200,})
     const paper_tex = loader.load("textures/paper.jpg")
-    const paper_mat = new THREE.MeshPhongMaterial({map: paper_tex, shininess: 200,})
     const eye_tex   = loader.load("textures/lens.png")
-    const eye_mat   = new THREE.MeshPhongMaterial({map: eye_tex, shininess: 200,})
-        eye_tex.repeat.set(1.2,1.2)
-        eye_tex.offset.set(0.20,-0.39)
     const blue_tex  = loader.load("textures/blue_metal.jpg")
-    const blue_mat  = new THREE.MeshPhongMaterial({map: blue_tex, shininess: 200,})
     const green_tex = loader.load("textures/green_metal.jpg")
-    const green_mat = new THREE.MeshPhongMaterial({map: green_tex, shininess: 200})
+    
+    // ☆ Configure textures
+    eye_tex.repeat.set(1.2,1.2)
+    eye_tex.offset.set(0.20,-0.39)
+    
+    // ☆ Define materials
+    const steel_mat = new THREE.MeshPhongMaterial({map: steel_tex, shininess: 200,})
+    const paper_mat = new THREE.MeshPhongMaterial({map: paper_tex, shininess: 200,})
+    const eye_mat   = new THREE.MeshStandardMaterial({map: eye_tex, roughness: 0.01, metalness: 0.1})
+    const blue_mat  = new THREE.MeshPhongMaterial({map: blue_tex, shininess: 200,})
+    const green_mat = new THREE.MeshStandardMaterial({map: green_tex, roughness: 0.6, metalness: 0.1})
 
+    // ☆ Assign material
     for (const [key, value] of Object.entries(meshes)){
         value.material = steel_mat;
     }
 
-    hat_base.material = paper_mat;
-    hat_top.material = paper_mat;
-    eye.material = eye_mat;
-    shoulder_left.material = green_mat;
-    shoulder_right.material = green_mat;
-    elbow_right.material = green_mat;
-    elbow_left.material = green_mat;
-    hips_base.material = green_mat;
-    grip_base_left.material = green_mat;
+    hat_base.material        = paper_mat;
+    hat_top.material         = paper_mat;
+    eye.material             = eye_mat;
+    shoulder_left.material   = green_mat;
+    shoulder_right.material  = green_mat;
+    elbow_right.material     = green_mat;
+    elbow_left.material      = green_mat;
+    hips_base.material       = green_mat;
+    grip_base_left.material  = green_mat;
     grip_base_right.material = green_mat;
-    head.material = green_mat;
-    torso.material = green_mat;
-    hips_ball.material = green_mat;
+    head.material            = green_mat;
+    torso.material           = green_mat;
+    hips_ball.material       = green_mat;
 
     // ☆ Positioning in the scene
-       torso.scale.set(  .25,    .25,   .25)
-    torso.position.set(  .2,    1.2,  -.5)
-    torso.rotation.set(   0,  -.35,    0)
+       torso.scale.set(  .25,  .25,   .25)
+    torso.position.set(  .2,   1.2,  -.5)
+    torso.rotation.set(  .0,  -.35,   .0)
     
-    shoulder_left.rotation.set(-3, 0, 0.8)
-    elbow_left.rotation.set(0,0,-.8)
-    elbow_right.rotation.set(0,0,0)
-    head.rotation.set(-0.1,0.2,-0.3)
+    shoulder_left.rotation.set(  -3,   0,  0.8)
+       elbow_left.rotation.set(   0,   0,  -.8)
+             head.rotation.set(-0.1, 0.2, -0.3)
 
     //#region Animation loop setup
     // ————————————————————————————————————————————————————————————————————————————————————————————
