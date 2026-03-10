@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+
+    <!--#region HTML Preamble —————————————————————————————————————————————————— -->
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+        <title>Robot in the Kitchen - Exercise 3</title>
+        <style>
+            html, body {
+                height: 100%;
+                margin: 0;
+            }
+            #c {
+                width: 100%;
+                height: 100%;
+                display: block;
+            }
+        </style>
+    </head>
+
+    <body>
+        <canvas id="c"></canvas>
+    </body>
+
+    <script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.182.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.182.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <!--#endregion-->
+
+    <script type="module">
+
+    // Three.js  code —————————————————————————————————————————————— -->
+
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+    const PI = 3.14159265359;
+    
+    //————————————————————————————————————————————————————————————————————————————————————————————
+    //#region Exercise 1
+    //————————————————————————————————————————————————————————————————————————————————————————————
+
+    // ☆ Initialize the scene
+    const scene = new THREE.Scene();
+
+    // ☆ Create a WebGLRenderer and enable shadow maps
+    const canvas = document.querySelector('#c');
+    const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
+
+    // ☆ Create a perspective camera
+    const camera = new THREE.PerspectiveCamera(60, 2, 0.1, 100);
+    camera.position.z = 5;
+    camera.position.y = 2.2;
+
+    // ☆ Orbit controls
+    var controls = new OrbitControls(camera, renderer.domElement);
+    controls.listenToKeyEvents(window);
+
+    // Setup the room structure
+    // ----------------------------------------------------------------
+
+    //  ☆ Define geometries
+    const plane_G     = new THREE.PlaneGeometry(4,4);
+    const tableBase_G = new THREE.BoxGeometry(2,1,2);
+    const tableTop_G  = new THREE.BoxGeometry(2.1,1.1,0.05);
+    const rubik_G     = new THREE.BoxGeometry(0.1,0.1,0.1);
+    const can_G       = new THREE.CylinderGeometry(0.05,0.05,0.2,32);
+
+    //  ☆ Load textures
+    const loader          = new THREE.TextureLoader();
+    const floorT_diff     = loader.load('textures/kitchen_floor.jpg');
+    const wallT_diff      = loader.load('textures/wall.jpg');
+    const tableBaseT_diff = loader.load('textures/tablebase.jpg');
+    const tableTopT_diff  = loader.load('textures/tabletop.jpg');
+    const rubikT_diff     = loader.load('textures/rubik.jpg');
+    const canbotT_diff    = loader.load('textures/canBot.png');
+    const cantopT_diff    = loader.load('textures/canTop.png');
+    const cansideT_diff   = loader.load('textures/coca.jpg')
+
+    //  ☆ Configure texture settings
+    floorT_diff.wrapS = THREE.RepeatWrapping;
+    floorT_diff.wrapT = THREE.RepeatWrapping;
+    floorT_diff.repeat.set(3,3);
+
+    wallT_diff.wrapS = THREE.RepeatWrapping;
+    wallT_diff.wrapT = THREE.RepeatWrapping;
+    wallT_diff.repeat.set(3,3);
+    wallT_diff.offset.set(0, .25);
+
+    tableBaseT_diff.wrapS = THREE.RepeatWrapping;
+    tableBaseT_diff.wrapT = THREE.RepeatWrapping;
+    tableBaseT_diff.repeat.set(1.5,1);
+    tableBaseT_diff.offset.set(0, .25);
+
+    //  ☆ Create materials
+    const floor_mat     = new THREE.MeshPhongMaterial({map: floorT_diff, side: THREE.DoubleSide, shininess: 150,});
+    const wall_mat      = new THREE.MeshPhongMaterial({map: wallT_diff, shininess: 150,});
+    const tableBase_mat = new THREE.MeshPhongMaterial({map: tableBaseT_diff, shininess: 200,})
+    const tableTop_mat  = new THREE.MeshPhongMaterial({map: tableTopT_diff, shininess: 200,})
+    const rubik_mat     = new THREE.MeshPhongMaterial({map: rubikT_diff, shininess: 100,})
+
+    const can_materials = [
+        new THREE.MeshPhongMaterial({map: cansideT_diff, shininess: 200}),
+        new THREE.MeshPhongMaterial({map: canbotT_diff, shininess: 200}),
+        new THREE.MeshPhongMaterial({map: cantopT_diff, shininess: 200}),
+    ]
+
+    //  ☆ Create meshes and add to the scene
+    const floor_M = new THREE.Mesh(plane_G, floor_mat);
+    floor_M.rotation.set(PI/2, 0, PI/8);
+    floor_M.position.y = -1;
+    floor_M.scale.set(0.9,0.9,0.9);
+    scene.add(floor_M);
+
+    const wall1_M = new THREE.Mesh(plane_G, wall_mat);
+    wall1_M.rotation.set(PI/2, PI, PI/2);
+    wall1_M.position.set(0,-2,-2);
+    floor_M.add(wall1_M);
+
+    const wall2_M = new THREE.Mesh(plane_G, wall_mat)
+    wall2_M.rotation.y = PI / 2;
+    wall2_M.position.set(-2,0,-2);
+    floor_M.add(wall2_M);
+
+    const tableBase_M = new THREE.Mesh(tableBase_G, tableBase_mat);
+    tableBase_M.position.set(0,0.5,-0.9);
+    tableBase_M.scale.set(.9,.9,.9);
+    floor_M.add(tableBase_M);
+
+    const tableTop_M = new THREE.Mesh(tableTop_G, tableTop_mat);
+    tableTop_M.position.z = -1;
+    tableBase_M.add(tableTop_M);
+
+    const rubik_M = new THREE.Mesh(rubik_G, rubik_mat);
+    rubik_M.position.set(0.3,0,-0.074);
+    rubik_M.rotation.z = 0.2;
+    tableTop_M.add(rubik_M);
+
+    const can_M = new THREE.Mesh(can_G, can_materials);
+    can_M.scale.set(0.9,0.9,0.9);
+    can_M.position.set(-0.2,0,-0.12);
+    can_M.rotation.x = PI/2;
+    tableTop_M.add(can_M);
+
+    //#endregion
+    //————————————————————————————————————————————————————————————————————————————————————————————
+    //#region Exercise 2
+    //————————————————————————————————————————————————————————————————————————————————————————————
+
+    // ☆ I made a chef robot using Blender, without any animations whatsoever, only defining the geometry
+    // - Let's import it into the scene (https://threejs.org/docs/#GLTFLoader)
+
+    import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+
+    const gltf_loader = new GLTFLoader();
+    const gltf_robot = await gltf_loader.loadAsync('models/robot.glb')
+    
+    // The gltf scene consists of a series of named meshes
+    const meshes = {};
+    gltf_robot.scene.traverse((obj) => { if(obj.isMesh) meshes[obj.name] = obj; });
+    
+    // ☆ Body
+    const torso           = meshes["torso"]
+    const hips_base       = meshes["hips_base"]
+    const hips_ball       = meshes["hips_ball"]
+    // ☆ Head
+    const head            = meshes["head"]
+    const eye             = meshes["eye"]
+    const hat_base        = meshes["hat_base"]
+    const hat_top         = meshes["hat_top"]
+    // ☆ Left Arm
+    const shoulder_left   = meshes["shoulder_left"]
+    const arm0_left       = meshes["arm0_left"]
+    const elbow_left      = meshes["elbow_left"]
+    const arm1_left       = meshes["arm1_left"]
+    const grip_base_left  = meshes["grip_base_left"]
+    const touchpadL_left  = meshes["touchpadL_left"]
+    const touchpadR_left  = meshes["touchpadR_left"]
+    const fingerL_left    = meshes["fingerL_left"]
+    const fingerR_left    = meshes["fingerR_left"]
+    // ☆ Right Arm
+    const shoulder_right  = meshes["shoulder_right"]
+    const arm0_right      = meshes["arm0_right"]
+    const elbow_right     = meshes["elbow_right"]
+    const arm1_right      = meshes["arm1_right"]
+    const grip_base_right = meshes["grip_base_right"]
+    const touchpadR_right = meshes["touchpadR_right"]
+    const fingerL_right   = meshes["fingerL_right"]
+    const fingerR_right   = meshes["fingerR_right"]
+    const touchpadL_right = meshes["touchpadL_right"]
+
+    // ☆ Hierarchy definition
+    // Note: I use attach instead of add because it preserves original world transform
+    torso.attach(head)
+    torso.attach(hips_base)
+    torso.attach(hips_ball)
+    torso.attach(shoulder_left)
+    torso.attach(shoulder_right)
+    head.attach(eye)
+    head.attach(hat_base)
+    head.attach(hat_top)
+    shoulder_left.attach(arm0_left)
+    arm0_left.attach(elbow_left)
+    elbow_left.attach(arm1_left)
+    arm1_left.attach(grip_base_left)
+    grip_base_left.attach(fingerL_left)
+    grip_base_left.attach(fingerR_left)
+    fingerL_left.attach(touchpadL_left)
+    fingerR_left.attach(touchpadR_left)
+    shoulder_right.attach(arm0_right)
+    arm0_right.attach(elbow_right)
+    elbow_right.attach(arm1_right)
+    arm1_right.attach(grip_base_right)
+    grip_base_right.attach(fingerL_right)
+    grip_base_right.attach(fingerR_right)
+    fingerL_right.attach(touchpadL_right)
+    fingerR_right.attach(touchpadR_right)
+    scene.add(torso)
+
+    // ☆ Load textures
+    const steel_tex = loader.load("textures/steel.jpg")
+    const paper_tex = loader.load("textures/paper.jpg")
+    const eye_tex   = loader.load("textures/lens.png")
+    const blue_tex  = loader.load("textures/blue_metal.jpg")
+    const green_tex = loader.load("textures/green_metal.jpg")
+    
+    // ☆ Configure textures
+    eye_tex.repeat.set(1.2,1.2)
+    eye_tex.offset.set(0.20,-0.39)
+    
+    // ☆ Define materials
+    const steel_mat = new THREE.MeshPhongMaterial({map: steel_tex, shininess: 200,})
+    const paper_mat = new THREE.MeshPhongMaterial({map: paper_tex, shininess: 200,})
+    const eye_mat   = new THREE.MeshStandardMaterial({map: eye_tex, roughness: 0.01, metalness: 0.1})
+    const blue_mat  = new THREE.MeshPhongMaterial({map: blue_tex, shininess: 200,})
+    const green_mat = new THREE.MeshStandardMaterial({map: green_tex, roughness: 0.6, metalness: 0.1})
+
+    // ☆ Assign material
+    for (const [key, value] of Object.entries(meshes)){
+        value.material = steel_mat;
+    }
+
+    hat_base.material        = paper_mat;
+    hat_top.material         = paper_mat;
+    eye.material             = eye_mat;
+    shoulder_left.material   = green_mat;
+    shoulder_right.material  = green_mat;
+    elbow_right.material     = green_mat;
+    elbow_left.material      = green_mat;
+    hips_base.material       = green_mat;
+    grip_base_left.material  = green_mat;
+    grip_base_right.material = green_mat;
+    head.material            = green_mat;
+    torso.material           = green_mat;
+    hips_ball.material       = green_mat;
+
+    // ☆ Positioning in the scene
+       torso.scale.set(  .25,  .25,   .25)
+    torso.position.set(  .2,   1.2,  -.5)
+    torso.rotation.set(  .0,  -.35,   .0)
+    
+    shoulder_left.rotation.set(  -3,   0,  0.8)
+       elbow_left.rotation.set(   0,   0,  -.8)
+             head.rotation.set(-0.1, 0.2, -0.3)
+
+             
+    //#endregion
+    //————————————————————————————————————————————————————————————————————————————————————————————
+    //#region Exercise 3
+    //————————————————————————————————————————————————————————————————————————————————————————————
+
+    // ☆ Let's define a new set of lights
+    scene.background = new THREE.Color( 0x333333 );
+    const spot1      = new THREE.SpotLight(0xFFFFFF, 30);
+    const ambient    = new THREE.AmbientLight(0xFFFFFF, 0.3);
+
+    // Position the spot light on the ceiling
+    spot1.position.set(0, 5.2, 1);
+    spot1.angle = 0.6;
+    spot1.penumbra = 0.2;
+    spot1.target = floor_M;
+
+    // // Add to the scene
+    scene.add(spot1);
+    scene.add(ambient);
+    
+    // // ☆ We need to make sure the shadowMap is enabled
+    renderer.shadowMap.enabled = true;
+
+    // // ☆ We'll activate shadow casting only for the top point-light
+    spot1.castShadow = true;
+
+    // // ☆ We also need to setup which objects in the scene will cast/receive shadows
+
+    // // We want the robot to cast shadows so...
+    for (const [key, mesh] of Object.entries(meshes)){
+        mesh.castShadow = true;
+    }
+    tableBase_M.castShadow = true;
+    tableTop_M.castShadow  = true;
+    can_M.castShadow = true;
+    rubik_M.castShadow = true;
+
+    // // We want the floor, walls and kitchen counter to receive shadows
+    floor_M.receiveShadow = true;
+    wall1_M.receiveShadow = true;
+    wall2_M.receiveShadow = true;
+    tableTop_M.receiveShadow = true;
+
+    // ☆ Let's also adjust the shadow map, this is done per-light
+    spot1.shadow.mapSize.width = 2040;
+    spot1.shadow.mapSize.width = 2040;
+    spot1.shadow.blurSamples = 20;
+    spot1.shadow.radius = 4;
+    // const cameraHelper = new THREE.CameraHelper(light.shadow.camera);
+    // scene.add(cameraHelper);
+
+    //#endregion
+    //————————————————————————————————————————————————————————————————————————————————————————————
+    //#region Animation loop setup
+    // ————————————————————————————————————————————————————————————————————————————————————————————
+
+    function resizeRendererToDisplaySize(renderer) {
+        const canvas = renderer.domElement;
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        const needResize = canvas.width !== width || canvas.height !== height;
+        if (needResize) {
+        renderer.setSize(width, height, false);
+        }
+        return needResize;
+    }
+
+    function animate(time) {
+
+        if (resizeRendererToDisplaySize(renderer)) {
+        const canvas = renderer.domElement;
+        camera.aspect = canvas.clientWidth / canvas.clientHeight;
+        camera.updateProjectionMatrix();
+        }
+
+        renderer.render(scene,camera);
+    }
+
+    renderer.setAnimationLoop(animate);
+
+    //#endregion
+</script>
+</html>
