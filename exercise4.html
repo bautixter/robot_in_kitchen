@@ -6,7 +6,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-        <title>Robot in the Kitchen - Exercise 3</title>
+        <title>Robot in the Kitchen - Exercise 4</title>
         <style>
             html, body {
                 height: 100%;
@@ -340,22 +340,57 @@
 
     // ☆ GUI
     const panel = new GUI();
-    const gui_values = {
-
-        // Animation Controls
-        playWaveAnimation: false,
+    const animControls = {
+        playWaveAnimation: true,
         waveAnimationSpeed: 0.001,
-
-        // Joint Controls
-        
     }
+
+    // Animation controls
+    const animFolder = panel.addFolder('Animation Control');
+    animFolder.add(animControls, 'playWaveAnimation').onChange((v) => {
+        if(v == false){
+            shoulder_left.rotation.set(-3, 0, 0.8);
+            head.rotation.set(-0.1, 0.2, 0);
+            torso.rotation.set(0, 0, 0);
+        }
+    });
+    animFolder.add(animControls, 'waveAnimationSpeed');
+
+    // Left Shoulder controls
+    const leftShoulderFolder = panel.addFolder('Left shoulder Rotation');
+    leftShoulderFolder.add(shoulder_left.rotation, 'x');
+    leftShoulderFolder.add(shoulder_left.rotation, 'y');
+    leftShoulderFolder.add(shoulder_left.rotation, 'z');
+
+    // Left elbow controls
+    const leftelbowFolder = panel.addFolder('Left elbow Rotation');
+    leftelbowFolder.add(elbow_left.rotation, 'x');
+    leftelbowFolder.add(elbow_left.rotation, 'y');
+    leftelbowFolder.add(elbow_left.rotation, 'z');
+
+    // Right Shoulder controls
+    const rightShoulderFolder = panel.addFolder('Right shoulder Rotation');
+    rightShoulderFolder.add(shoulder_right.rotation, 'x');
+    rightShoulderFolder.add(shoulder_right.rotation, 'y');
+    rightShoulderFolder.add(shoulder_right.rotation, 'z');
+
+    // Right elbow controls
+    const rightelbowFolder = panel.addFolder('Right elbow Rotation');
+    rightelbowFolder.add(elbow_right.rotation, 'x');
+    rightelbowFolder.add(elbow_right.rotation, 'y');
+    rightelbowFolder.add(elbow_right.rotation, 'z');
 
     // ☆ FK Animation
     function waveUpdate(t, play_speed) {
         const wave = Math.sin(t * play_speed);
+        // Move joints
         shoulder_left.rotation.set(-3, 0, 0.8 + wave * 0.4);
         head.rotation.set(-0.1, 0.2, wave * 0.2);
         torso.rotation.set(0, wave * 0.2, 0);
+        // Reset joints
+        shoulder_right.rotation.set(0,0,0);
+        elbow_left.rotation.set(0,0,-0.8);
+        elbow_right.rotation.set(0,0,0);
     }
 
     // ☆ Orbit controls
@@ -373,8 +408,9 @@
 
         renderer.render(scene,camera);
 
-        if(gui_values.waveAnim){
-            waveUpdate(time);
+        // Update animation
+        if(animControls.playWaveAnimation){
+            waveUpdate(time, animControls.waveAnimationSpeed);
         }
     }
 
