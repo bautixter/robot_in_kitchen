@@ -43,6 +43,7 @@
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 
     const PI = 3.14159265359;
     
@@ -281,24 +282,24 @@
 
     // ☆ Let's define a new set of lights
     scene.background = new THREE.Color( 0x333333 );
-    const spot1      = new THREE.SpotLight(0xFFFFFF, 30);
+    const spot       = new THREE.SpotLight(0xFFFFFF, 30);
     const ambient    = new THREE.AmbientLight(0xFFFFFF, 0.3);
 
     // Position the spot light on the ceiling
-    spot1.position.set(0, 5.2, 1);
-    spot1.angle = 0.6;
-    spot1.penumbra = 0.2;
-    spot1.target = floor_M;
+    spot.position.set(0, 5.2, 1);
+    spot.angle = 0.6;
+    spot.penumbra = 0.2;
+    spot.target = floor_M;
 
     // Add to the scene
-    scene.add(spot1);
+    scene.add(spot);
     scene.add(ambient);
     
     // ☆ We need to make sure the shadowMap is enabled
     renderer.shadowMap.enabled = true;
 
     // ☆ We'll activate shadow casting on our spotlight
-    spot1.castShadow = true;
+    spot.castShadow = true;
 
     // ☆ We also need to setup which objects in the scene will cast/receive shadows
     for (const [key, mesh] of Object.entries(meshes)){
@@ -316,14 +317,43 @@
     tableTop_M.receiveShadow = true;
 
     // ☆ Let's also adjust the shadow map, this is done per-light
-    spot1.shadow.mapSize.width = 2040;
-    spot1.shadow.mapSize.width = 2040;
-    spot1.shadow.blurSamples = 20;
-    spot1.shadow.radius = 4;
+    spot.shadow.mapSize.width = 2040;
+    spot.shadow.mapSize.width = 2040;
+    spot.shadow.blurSamples = 20;
+    spot.shadow.radius = 4;
 
     // I used a CameraHelper to debug if everything was right, now it's off
     // const cameraHelper = new THREE.CameraHelper(light.shadow.camera);
     // scene.add(cameraHelper);
+
+    // ☆ Make the GUI
+    const panel = new GUI();
+
+    // Light controls
+    const lightFolder = panel.addFolder('Spot Light');
+    lightFolder.add(spot, 'angle');
+    lightFolder.add(spot, 'penumbra');
+    lightFolder.add(spot, 'intensity');
+    lightFolder.add(spot, 'decay');
+
+    // Shadow casting controls
+    const castFolder = panel.addFolder('Cast Shadow');
+    const params = { allCastShadow: true };
+    castFolder.add(params, 'allCastShadow').name('Robot').onChange(v => {
+        Object.values(meshes).forEach(m => m.castShadow = v);
+    });
+    castFolder.add(tableBase_M, 'castShadow').name('Table Base');
+    castFolder.add(tableTop_M,  'castShadow').name('Table Top');
+    castFolder.add(can_M,       'castShadow').name('Can');
+    castFolder.add(rubik_M,     'castShadow').name('Rubik');
+
+    // Shadow receiving controls
+    const receiveFolder = panel.addFolder('Receive Shadow');
+    receiveFolder.add(floor_M,    'receiveShadow').name('Floor');
+    receiveFolder.add(wall1_M,    'receiveShadow').name('Wall 1');
+    receiveFolder.add(wall2_M,    'receiveShadow').name('Wall 2');
+    receiveFolder.add(tableTop_M, 'receiveShadow').name('Table Top');
+
 
     //#endregion
     //————————————————————————————————————————————————————————————————————————————————————————————
