@@ -62,6 +62,8 @@
 
     // ☆ Create a perspective camera
     const camera = new THREE.PerspectiveCamera(60, 2, 0.1, 100);
+    camera.position.z = 5;
+    camera.position.y = 2.2;
 
     // Setup the room structure
     // ----------------------------------------------------------------
@@ -358,18 +360,22 @@
     //#region Exercise 5
     //———————————————————————————————————————————————————————————————————————————————————————————— 
     
-    // ☆ Add camera rig to locate XR in the scene
-    const cameraRig = new THREE.Group();
-    scene.add(cameraRig);
-    cameraRig.add(camera);
-    cameraRig.rotation.set(0,Math.PI,0);
-    camera.position.set(0, 0, 0.5); // Small offset for desktop preview
-    const headToTorsoOffset = torso.position.clone().sub(headWorldPos);
-
     // ☆ Session start handling
     renderer.xr.addEventListener('sessionstart', () => {
+        // Variables
         const scale = 0.5
+        const grip_scale = .15;
+
+        // Scene size adjust
         floor_M.scale.set(scale, scale, scale);
+        floor_M.rotation.set(PI/2,0,PI);
+
+        // Robot hands setup
+        scene.remove(torso);
+        scene.attach(grip_base_left);
+        scene.attach(grip_base_right);
+        grip_base_left.scale.set(grip_scale, grip_scale, grip_scale);
+        grip_base_right.scale.set(grip_scale, grip_scale, grip_scale);
     });
 
     // ☆ Add VRButton to enable XR session
@@ -380,23 +386,6 @@
     const controller2 = renderer.xr.getController(1);
     scene.add(controller1, controller2);
 
-    // ☆ Store controller data
-    const controllerData = {
-        left: { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() },
-        right: { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() }
-    };
-
-    // ☆ Update controller data each frame
-    controller1.addEventListener('move', (event) => {
-        controllerData.left.position.copy(controller1.position);
-        controllerData.left.quaternion.copy(controller1.quaternion);
-    });
-
-    controller2.addEventListener('move', (event) => {
-        controllerData.right.position.copy(controller2.position);
-        controllerData.right.quaternion.copy(controller2.quaternion);
-    });
-
     // ☆ Render loop
     function animate(time, frame) {
 
@@ -406,25 +395,28 @@
             camera.updateProjectionMatrix();
         }
 
+        // During XR session...
         if (frame) {
-            // frame is truthy only during an active XR session
-            const xrCamera = renderer.xr.getCamera();
-            const headsetPos = new THREE.Vector3();
-            const headsetDir = new THREE.Vector3();
-            xrCamera.getWorldPosition(headsetPos);
-            xrCamera.getWorldDirection(headsetDir);
-            torso.position.copy(headsetPos).add(headToTorsoOffset);
-            torso.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), headsetDir);
+            const leftHandPos = new THREE.Vector3();
+            const rightHandPos = new THREE.Vector3();
+            const leftHandQuat = new THREE.Quaternion();
+            const rightHandQuat = new THREE.Quaternion();
+            
+            // ☆ Fetch controller position and rotation
+            controller1.getWorldPosition(leftHandPos);
+            controller2.getWorldPosition(rightHandPos);
+            controller1.getWorldQuaternion(leftHandQuat);
+            controller2.getWorldQuaternion(rightHandQuat);
+            
+            // ☆ Update grippers position
+            grip_base_left.position.copy(leftHandPos);
+            grip_base_right.position.copy(rightHandPos);
+
+            // ☆ Update grippers rotation
+            const gripRotOffset = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), PI/4);
+            grip_base_left.quaternion.copy(leftHandQuat).multiply(gripRotOffset);
+            grip_base_right.quaternion.copy(rightHandQuat).multiply(gripRotOffset);
         }
-
-        // ☆ Map controller rotations to robot arm movements
-        // Left controller -> Left arm
-        shoulder_left.rotation.order = 'YXZ';
-        shoulder_left.rotation.setFromQuaternion(controllerData.left.quaternion);
-
-        // Right controller -> Right arm
-        shoulder_right.rotation.order = 'YXZ';
-        shoulder_right.rotation.setFromQuaternion(controllerData.right.quaternion);
 
         renderer.render(scene, camera);
     }
