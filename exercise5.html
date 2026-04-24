@@ -386,6 +386,33 @@
     const controller2 = renderer.xr.getController(1);
     scene.add(controller1, controller2);
 
+    const gripRotOffset = new THREE.Quaternion().setFromEuler(new THREE.Euler(PI/4, 0, 0));
+
+    // ☆ Grip open/close state
+    const fingerOpenPos = {
+        L_left:  fingerL_left.position.x,
+        R_left:  fingerR_left.position.x,
+        L_right: fingerL_right.position.x,
+        R_right: fingerR_right.position.x,
+    };
+    const FINGER_TRAVEL = 0.15;
+
+    // ☆ Grip handler definition
+    function setGripClosed(side, closed) {
+        const fingerL = side === 'left' ? fingerL_left  : fingerL_right;
+        const fingerR = side === 'left' ? fingerR_left  : fingerR_right;
+        const openL   = side === 'left' ? fingerOpenPos.L_left  : fingerOpenPos.L_right;
+        const openR   = side === 'left' ? fingerOpenPos.R_left  : fingerOpenPos.R_right;
+        fingerL.position.x = closed ? openL - FINGER_TRAVEL : openL;
+        fingerR.position.x = closed ? openR + FINGER_TRAVEL : openR;
+    }
+
+    // ☆ Grip handler assignment
+    controller1.addEventListener('selectstart', () => setGripClosed('left',  true));
+    controller1.addEventListener('selectend',   () => setGripClosed('left',  false));
+    controller2.addEventListener('selectstart', () => setGripClosed('right', true));
+    controller2.addEventListener('selectend',   () => setGripClosed('right', false));
+
     // ☆ Render loop
     function animate(time, frame) {
 
@@ -397,9 +424,10 @@
 
         // During XR session...
         if (frame) {
-            const leftHandPos = new THREE.Vector3();
-            const rightHandPos = new THREE.Vector3();
-            const leftHandQuat = new THREE.Quaternion();
+            // ☆ Hand position and rotation variables
+            const leftHandPos   = new THREE.Vector3();
+            const rightHandPos  = new THREE.Vector3();
+            const leftHandQuat  = new THREE.Quaternion();
             const rightHandQuat = new THREE.Quaternion();
             
             // ☆ Fetch controller position and rotation
@@ -413,7 +441,6 @@
             grip_base_right.position.copy(rightHandPos);
 
             // ☆ Update grippers rotation
-            const gripRotOffset = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), PI/4);
             grip_base_left.quaternion.copy(leftHandQuat).multiply(gripRotOffset);
             grip_base_right.quaternion.copy(rightHandQuat).multiply(gripRotOffset);
         }
